@@ -1,4 +1,4 @@
--- ULTIMATE REMOTE SPY (Auto-Filter, Re-fire, Safe Thread)
+-- ULTIMATE SPY (Copy Per Log, No Lag)
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -8,8 +8,8 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 650, 0, 450)
-Frame.Position = UDim2.new(0.5, -325, 0.5, -225)
+Frame.Size = UDim2.new(0, 500, 0, 300)
+Frame.Position = UDim2.new(0, 20, 0, 80) -- Moved to top left so it doesn't block you
 Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 Frame.BorderSizePixel = 2
 Frame.BorderColor3 = Color3.fromRGB(0, 255, 255)
@@ -21,9 +21,9 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -30, 0, 30)
 Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
-Title.Text = " Ultimate Spy (Click log to Re-fire)"
+Title.Text = " Ultimate Spy (Click 📋 to Copy)"
 Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 16
+Title.TextSize = 14
 Title.Parent = Frame
 
 local MinBtn = Instance.new("TextButton")
@@ -40,13 +40,13 @@ local isMinimized = false
 MinBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
-        Frame.Size = UDim2.new(0, 250, 0, 30)
+        Frame.Size = UDim2.new(0, 150, 0, 30)
         MinBtn.Text = "+"
         for _, v in pairs(Frame:GetChildren()) do
             if v ~= Title and v ~= MinBtn then v.Visible = false end
         end
     else
-        Frame.Size = UDim2.new(0, 650, 0, 450)
+        Frame.Size = UDim2.new(0, 500, 0, 300)
         MinBtn.Text = "-"
         for _, v in pairs(Frame:GetChildren()) do
             if v ~= Title and v ~= MinBtn then v.Visible = true end
@@ -55,53 +55,75 @@ MinBtn.MouseButton1Click:Connect(function()
 end)
 
 local ToggleBtn = Instance.new("TextButton")
-ToggleBtn.Size = UDim2.new(0, 100, 0, 30)
+ToggleBtn.Size = UDim2.new(0, 80, 0, 25)
 ToggleBtn.Position = UDim2.new(0, 10, 0, 40)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleBtn.Text = "Start Spy"
+ToggleBtn.Text = "Start"
 ToggleBtn.Font = Enum.Font.SourceSansBold
+ToggleBtn.TextSize = 12
 ToggleBtn.Parent = Frame
 
+local CopyAllBtn = Instance.new("TextButton")
+CopyAllBtn.Size = UDim2.new(0, 80, 0, 25)
+CopyAllBtn.Position = UDim2.new(0, 100, 0, 40)
+CopyAllBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
+CopyAllBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CopyAllBtn.Text = "Copy All"
+CopyAllBtn.Font = Enum.Font.SourceSansBold
+CopyAllBtn.TextSize = 12
+CopyAllBtn.Parent = Frame
+
 local ClearBtn = Instance.new("TextButton")
-ClearBtn.Size = UDim2.new(0, 100, 0, 30)
-ClearBtn.Position = UDim2.new(0, 120, 0, 40)
+ClearBtn.Size = UDim2.new(0, 80, 0, 25)
+ClearBtn.Position = UDim2.new(0, 190, 0, 40)
 ClearBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
 ClearBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ClearBtn.Text = "Clear Log"
+ClearBtn.Text = "Clear"
 ClearBtn.Font = Enum.Font.SourceSansBold
+ClearBtn.TextSize = 12
 ClearBtn.Parent = Frame
 
 local ScrollFrame = Instance.new("ScrollingFrame")
-ScrollFrame.Size = UDim2.new(1, -20, 1, -90)
-ScrollFrame.Position = UDim2.new(0, 10, 0, 80)
+ScrollFrame.Size = UDim2.new(1, -20, 1, -80)
+ScrollFrame.Position = UDim2.new(0, 10, 0, 75)
 ScrollFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ScrollFrame.BackgroundTransparency = 0.5
 ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ScrollFrame.ScrollBarThickness = 6
 ScrollFrame.Parent = Frame
 
 local ListLayout = Instance.new("UIListLayout")
 ListLayout.Parent = ScrollFrame
 ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ListLayout.Padding = UDim.new(0, 2)
 
 local isSpying = false
-local logCount = 0
+local fullLog = ""
 
 ToggleBtn.MouseButton1Click:Connect(function()
     isSpying = not isSpying
-    ToggleBtn.Text = isSpying and "Stop Spy" or "Start Spy"
+    ToggleBtn.Text = isSpying and "Stop" or "Start"
     ToggleBtn.BackgroundColor3 = isSpying and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(0, 150, 0)
 end)
 
 ClearBtn.MouseButton1Click:Connect(function()
     for _, v in pairs(ScrollFrame:GetChildren()) do
-        if v:IsA("TextButton") then v:Destroy() end
+        if v:IsA("Frame") then v:Destroy() end
     end
-    logCount = 0
+    fullLog = ""
 end)
 
--- Safe Table Parser (Prevents game freeze)
+CopyAllBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(fullLog)
+        CopyAllBtn.Text = "Copied!"
+        task.wait(1)
+        CopyAllBtn.Text = "Copy All"
+    end
+end)
+
 local function parseArgs(...)
     local args = {...}
     local parsed = {}
@@ -114,7 +136,7 @@ local function parseArgs(...)
             local tblStr = "{"
             local count = 0
             for k, val in pairs(v) do
-                if count >= 5 then tblStr = tblStr .. "..."; break end
+                if count >= 4 then tblStr = tblStr .. "..."; break end
                 tblStr = tblStr .. tostring(k) .. "=" .. tostring(val) .. ", "
                 count = count + 1
             end
@@ -133,44 +155,54 @@ oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     if isSpying and not checkcaller() and (method == "FireServer" or method == "InvokeServer") then
         if typeof(self) == "Instance" and (self:IsA("RemoteEvent") or self:IsA("RemoteFunction")) then
             
-            -- Auto-Filter: Ignore spammy UI/Movement remotes that freeze the game
             local name = string.lower(self.Name)
+            -- Filter out spammy remotes so game doesn't freeze
             if not (name:find("movement") or name:find("character") or name:find("ping") or name:find("mouse") or name:find("camera")) then
                 
                 local args = {...}
                 local argString = parseArgs(...)
-                local logText = self.Name .. "(" .. argString .. ")"
                 
-                -- Create clickable log line
+                -- Format exactly how you would write it in a script
+                local codeString = string.format('%s:%s(%s)', self:GetFullName(), method, argString)
+                
                 task.spawn(function()
-                    local logBtn = Instance.new("TextButton")
-                    logBtn.Size = UDim2.new(1, -10, 0, 25)
-                    logBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-                    logBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
-                    logBtn.Text = logText
-                    logBtn.TextXAlignment = Enum.TextXAlignment.Left
-                    logBtn.Font = Enum.Font.Code
-                    logBtn.TextSize = 12
-                    logBtn.Parent = ScrollFrame
+                    -- Container for the log line and copy button
+                    local LogFrame = Instance.new("Frame")
+                    LogFrame.Size = UDim2.new(1, -5, 0, 25)
+                    LogFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                    LogFrame.Parent = ScrollFrame
                     
-                    -- Click to Re-fire the remote
-                    logBtn.MouseButton1Click:Connect(function()
-                        if method == "FireServer" then
-                            self:FireServer(table.unpack(args))
-                        else
-                            self:InvokeServer(table.unpack(args))
+                    local TextLabel = Instance.new("TextLabel")
+                    TextLabel.Size = UDim2.new(1, -30, 1, 0)
+                    TextLabel.BackgroundTransparency = 1
+                    TextLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+                    TextLabel.Text = codeString
+                    TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+                    TextLabel.Font = Enum.Font.Code
+                    TextLabel.TextSize = 11
+                    TextLabel.TextTruncate = Enum.TextTruncate.AtEnd
+                    TextLabel.Parent = LogFrame
+                    
+                    local CopyBtn = Instance.new("TextButton")
+                    CopyBtn.Size = UDim2.new(0, 25, 0, 25)
+                    CopyBtn.Position = UDim2.new(1, -25, 0, 0)
+                    CopyBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                    CopyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    CopyBtn.Text = "📋"
+                    CopyBtn.Font = Enum.Font.SourceSansBold
+                    CopyBtn.TextSize = 14
+                    CopyBtn.Parent = LogFrame
+                    
+                    CopyBtn.MouseButton1Click:Connect(function()
+                        if setclipboard then
+                            setclipboard(codeString)
+                            CopyBtn.Text = "✅"
+                            task.wait(1)
+                            CopyBtn.Text = "📋"
                         end
-                        logBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
-                        task.wait(0.2)
-                        logBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
                     end)
                     
-                    logCount = logCount + 1
-                    -- Limit to 100 logs to prevent lag
-                    if logCount > 100 then
-                        local oldest = ScrollFrame:FindFirstChildWhichIsA("TextButton")
-                        if oldest then oldest:Destroy() end
-                    end
+                    fullLog = fullLog .. codeString .. "\n"
                 end)
             end
         end
